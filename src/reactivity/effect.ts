@@ -1,6 +1,8 @@
 class ReactiveEffect {
   private readonly fn: Function;
-
+  deps = [];
+  active = true;
+  onStop?: ()=> void;
   constructor(fn: Function, public scheduler?: Function) {
     this.fn = fn;
   }
@@ -8,6 +10,22 @@ class ReactiveEffect {
     activeEffect = this;
     return this.fn();
   }
+
+  stop() {
+    if (this.active) {
+      cleanupEffect(this);
+      if (this.onStop) {
+        this.onStop();
+      }
+      this.active = false;
+    }
+  }
+}
+
+const cleanupEffect = (effect: ReactiveEffect) => {
+  effect.deps.forEach((dep) => {
+    dep.delete(effect);
+  });
 }
 
 /**
@@ -29,7 +47,11 @@ export const track = (target, key) => {
     dep = new Set();
     depsMap.set(key, dep);
   }
+  if (!activeEffect) return
+  // 将 effect 放到 dep 中
   dep.add(activeEffect)
+  // 反向收集：将 dep 放到 effect 中
+  activeEffect.deps.push(dep);
 }
 
 /**
@@ -39,7 +61,6 @@ export const trigger = (target, key) => {
   let depsMap = targetMap.get(target);
   let dep = depsMap.get(key);
   for (const effect of dep) {
-    console.log(effect.schuduler);
     if (effect.scheduler) {
       effect.scheduler();
     }else {
@@ -48,9 +69,17 @@ export const trigger = (target, key) => {
   }
 }
 
+export const  stop = (runner) => { // 传入的是 effect 的返回值
+  runner.effect.stop();
+}
+
 let activeEffect;
 export const effect = (fn, options: any = {}) => {
   const _effect = new ReactiveEffect(fn, options?.scheduler);
+  Object.assign(_effect, options);
   _effect.run();
-  return _effect.run.bind(_effect);
+  const runner = _effect.run.bind(_effect);
+  // 将 effect 的实例返回
+  runner.effect = _effect;
+  return runner;
 }
