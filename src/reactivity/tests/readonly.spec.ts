@@ -9,4 +9,11 @@ describe('readonly', () => {
     observed.age = 20
     expect(observed.age).toBe(18)
   })
+
+  it('warn when call set', () => {
+    const user = readonly({name: 'pika', age: 18})
+    console.warn = jest.fn()
+    user.age = 20
+    expect(console.warn).toBeCalled()
+  })
 })
