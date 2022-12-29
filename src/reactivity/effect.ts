@@ -64,7 +64,7 @@ export const track = (target, key) => {
     dep = new Set()
     depsMap.set(key, dep)
   }
-  if (!activeEffect) return
+  if (!activeEffect || dep.has(activeEffect)) return
   // 将 effect 放到 dep 中
   dep.add(activeEffect)
   // 反向收集：将 dep 放到 effect 中
