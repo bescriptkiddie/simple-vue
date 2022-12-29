@@ -63,8 +63,10 @@ describe("effect", () => {
     obj.foo = 2;
     expect(dummy).toBe(2);
     stop(runner);
-    obj.foo = 3;
+    obj.foo++;
     expect(dummy).toBe(2);
+    // dummy 依旧更新，为3，因为 obj.foo++ => obj.foo = obj.foo + 1,
+    // 会触发get，get会重新收集effect，需要对 stop 时机进行调整
     runner();
     expect(dummy).toBe(3);
   })
