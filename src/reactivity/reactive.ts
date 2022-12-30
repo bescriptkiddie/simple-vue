@@ -1,4 +1,4 @@
-import { baseHandle, ReactiveFlags, readonlyHandle } from './baseHandle'
+import { baseHandle, ReactiveFlags, readonlyHandle, shadowReadonlyHandle } from './baseHandle'
 
 const reactive = (target) => {
   // 如果传入的是一个对象，那么就创建一个响应式对象
@@ -12,6 +12,9 @@ export const readonly = (target) => {
   return new Proxy(target, readonlyHandle)
 }
 
+export const shadowReadonly = (target) => {
+  return new Proxy(target, shadowReadonlyHandle)
+}
 export const isReactive = (value): Boolean => {
   // 通过访问 value 的 key，触发 get 操作，然后在 get 里面进行判断
   return value && !!value[ReactiveFlags.IS_REACTIVE]
@@ -20,4 +23,5 @@ export const isReactive = (value): Boolean => {
 export const isReadonly = (value): Boolean => {
   return value && !!value[ReactiveFlags.IS_READONLY]
 }
+
 export default reactive
