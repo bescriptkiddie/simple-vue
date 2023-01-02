@@ -39,7 +39,7 @@ const cleanupEffect = (effect: ReactiveEffect) => {
 }
 
 // 是否在依赖收集的过程中，调用 track 函数
-const isTracking = () => {
+export const isTracking = () => {
   return activeEffect !== undefined && shouldTrack
 }
 
