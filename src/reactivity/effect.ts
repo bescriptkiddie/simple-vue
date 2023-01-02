@@ -32,13 +32,13 @@ class ReactiveEffect {
 
 // 清空依赖
 const cleanupEffect = (effect: ReactiveEffect) => {
-  effect.deps.forEach((dep) => {
+  effect.deps.forEach(dep => {
     dep.delete(effect)
   })
   effect.deps.length = 0
 }
 
-//
+// 是否在依赖收集的过程中，调用 track 函数
 const isTracking = () => {
   return activeEffect !== undefined && shouldTrack
 }
@@ -64,6 +64,12 @@ export const track = (target, key) => {
     dep = new Set()
     depsMap.set(key, dep)
   }
+  trackEffects(dep)
+}
+
+// 添加依赖
+export const trackEffects = dep => {
+  // 如果当前有依赖收集的过程并且dep中没保存，就把当前的 effect-callback 放到 dep 中
   if (!activeEffect || dep.has(activeEffect)) return
   // 将 effect 放到 dep 中
   dep.add(activeEffect)
@@ -77,6 +83,11 @@ export const track = (target, key) => {
 export const trigger = (target, key) => {
   let depsMap = targetMap.get(target)
   let dep = depsMap.get(key)
+  triggerEffects(dep)
+}
+
+// 检查 dep 中的依赖，执行依赖
+export const triggerEffects = dep => {
   for (const effect of dep) {
     if (effect.scheduler) {
       effect.scheduler()
@@ -85,8 +96,8 @@ export const trigger = (target, key) => {
     }
   }
 }
-
-export const stop = (runner) => { // 传入的是 effect 的返回值
+export const stop = runner => {
+  // 传入的是 effect 的返回值
   runner.effect.stop()
 }
 
